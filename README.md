@@ -19,7 +19,7 @@ For QMK
 git clone https://github.com/qmk/qmk_firmware.git
 
 # Clone module
-git clone https://github.com/bskaplou/companion_hid qmk_firmware/modules/bskaplou
+git clone https://github.com/bskaplou/qmk_modules.git qmk_firmware/modules/bskaplou
 ```
 
 For Vial
@@ -28,7 +28,7 @@ For Vial
 git clone https://github.com/vial-kb/vial-qmk.git
 
 # Clone module
-git clone https://github.com/bskaplou/companion_hid vial-qmk/modules/bskaplou
+git clone https://github.com/bskaplou/qmk_modules.git vial-qmk/modules/bskaplou
 ```
 
 #### Edit keymap.json of your keymap
