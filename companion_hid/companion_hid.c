@@ -10,6 +10,7 @@
 uint8_t companion_hid_report = 0;
 
 void companion_hid_fill_state(uint8_t *data, layer_state_t state) {
+    data[0] = id_companion_hid_out_state;
     data[1] = get_highest_layer(state);
 
 #ifdef CAPS_WORD_ENABLE
@@ -21,23 +22,26 @@ void companion_hid_fill_state(uint8_t *data, layer_state_t state) {
     data[3] = companion_hid_report;
 }
 
-void companion_hid_report_press(layer_state_t state) {
-    uint8_t response[HID_MESSAGE_LENGTH];
-    memset(response, 0, HID_MESSAGE_LENGTH);
-    response[0] = id_companion_hid_out;
-    response[1] = id_hid_press_out;
-    raw_hid_send(response, HID_MESSAGE_LENGTH);
-}
-
 void companion_hid_report_state(layer_state_t state) {
     if(companion_hid_report) {
         uint8_t response[HID_MESSAGE_LENGTH];
         memset(response, 0, HID_MESSAGE_LENGTH);
-        response[0] = id_companion_hid_out;
         companion_hid_fill_state(response, state);
         raw_hid_send(response, HID_MESSAGE_LENGTH);
     }
 }
+
+void companion_hid_report_press(uint32_t symbol) {
+    uint8_t response[HID_MESSAGE_LENGTH];
+    memset(response, 0, HID_MESSAGE_LENGTH);
+    response[0] = id_companion_hid_out_press;
+    response[1] = ((uint8_t*) &symbol)[0];
+    response[2] = ((uint8_t*) &symbol)[1];
+    response[2] = ((uint8_t*) &symbol)[2];
+    response[4] = ((uint8_t*) &symbol)[3];
+    raw_hid_send(response, HID_MESSAGE_LENGTH);
+}
+
 
 layer_state_t layer_state_set_user(layer_state_t state) {
     companion_hid_report_state(state);
@@ -61,12 +65,10 @@ void raw_hid_receive_kb(uint8_t *data, uint8_t length) {
 
         // response rewrites inout data because via sends data back after func completion
         memset(data, 0, length);
-        data[0] = id_companion_hid_out;
-        // error will be returned in case of no subcommand match and success
-        data[1] = COMPANION_HID_MESSAGE_ERROR;
 
         switch(subcommand) {
             case id_get_version:
+                data[0] = id_companion_hid_out_version;
                 data[1] = COMPANION_HID_VERSION;
                 break;
             case id_set_report_change:
@@ -76,14 +78,18 @@ void raw_hid_receive_kb(uint8_t *data, uint8_t length) {
                 companion_hid_fill_state(data, layer_state);
                 break;
             case id_invert_layer:
-                if(layer_state < DYNAMIC_KEYMAP_LAYER_COUNT) {
+                if(argument > 0) {
                     uint8_t save_report_state = companion_hid_report;
                     companion_hid_report = 0;
                     layer_invert(argument);
                     companion_hid_report = save_report_state;
                     companion_hid_fill_state(data, layer_state);
+                } else {
+                    data[0] = id_companion_hid_out_error;
                 }
                 break;
+            default:
+                data[0] = id_companion_hid_out_error;
         }
     }
 }
