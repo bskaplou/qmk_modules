@@ -5,8 +5,7 @@ Companion HID module extends RAW_HID protocol with several HID commands and feat
 It allows to send layers and caps_word state data to host computer.
 
 QmkLayoutWidget is a reference implementation of Companion HID protocol which indicates current layer and caps word state in sysmtem tray.
-
-https://github.com/bskaplou/QmkLayoutWidget
+https://github.com/bskaplou/qmk_complanion_app
 
 Motivation for this modules is here https://www.reddit.com/r/ErgoMechKeyboards/comments/1nofeb6/current_layer_tray_indicator_for_qmkvial_keyboards/
 
