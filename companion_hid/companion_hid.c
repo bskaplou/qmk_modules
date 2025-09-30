@@ -37,7 +37,7 @@ void companion_hid_report_press(uint32_t symbol) {
     response[0] = id_companion_hid_out_press;
     response[1] = ((uint8_t*) &symbol)[0];
     response[2] = ((uint8_t*) &symbol)[1];
-    response[2] = ((uint8_t*) &symbol)[2];
+    response[3] = ((uint8_t*) &symbol)[2];
     response[4] = ((uint8_t*) &symbol)[3];
     raw_hid_send(response, HID_MESSAGE_LENGTH);
 }
