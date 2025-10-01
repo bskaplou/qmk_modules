@@ -6,8 +6,9 @@
 
 #include "introspection.h"
 
-// by default layers are not reported on change, can be altered with id_set_report_change subcommand
-uint8_t companion_hid_report = 0;
+// by default layers/presses are not reported on change, can be altered with related subcommands
+uint8_t companion_hid_report_change_flag = 0;
+uint8_t companion_hid_report_press_flag  = 0;
 
 void companion_hid_fill_state(uint8_t *data, layer_state_t state) {
     data[0] = id_companion_hid_out_state;
@@ -19,11 +20,12 @@ void companion_hid_fill_state(uint8_t *data, layer_state_t state) {
     data[2] = 0;
 #endif
 
-    data[3] = companion_hid_report;
+    data[3] = companion_hid_report_change_flag;
+    data[4] = companion_hid_report_press_flag;
 }
 
 void companion_hid_report_state(layer_state_t state) {
-    if(companion_hid_report) {
+    if(companion_hid_report_change_flag) {
         uint8_t response[HID_MESSAGE_LENGTH];
         memset(response, 0, HID_MESSAGE_LENGTH);
         companion_hid_fill_state(response, state);
@@ -31,15 +33,19 @@ void companion_hid_report_state(layer_state_t state) {
     }
 }
 
-void companion_hid_report_press(uint32_t symbol) {
-    uint8_t response[HID_MESSAGE_LENGTH];
-    memset(response, 0, HID_MESSAGE_LENGTH);
-    response[0] = id_companion_hid_out_press;
-    response[1] = ((uint8_t*) &symbol)[0];
-    response[2] = ((uint8_t*) &symbol)[1];
-    response[3] = ((uint8_t*) &symbol)[2];
-    response[4] = ((uint8_t*) &symbol)[3];
-    raw_hid_send(response, HID_MESSAGE_LENGTH);
+void companion_hid_report_press(uint32_t symbol, const char* fallback) {
+    if(companion_hid_report_press_flag) {
+        uint8_t response[HID_MESSAGE_LENGTH];
+        memset(response, 0, HID_MESSAGE_LENGTH);
+        response[0] = id_companion_hid_out_press;
+        response[1] = ((uint8_t*) &symbol)[0];
+        response[2] = ((uint8_t*) &symbol)[1];
+        response[3] = ((uint8_t*) &symbol)[2];
+        response[4] = ((uint8_t*) &symbol)[3];
+        raw_hid_send(response, HID_MESSAGE_LENGTH);
+    } else {
+        SEND_STRING(fallback);
+    }
 }
 
 
@@ -71,18 +77,23 @@ void raw_hid_receive_kb(uint8_t *data, uint8_t length) {
                 data[0] = id_companion_hid_out_version;
                 data[1] = COMPANION_HID_VERSION;
                 break;
-            case id_set_report_change:
-                companion_hid_report = argument;
-            // active layer returned for set_report_change to avoid additional commands from consumer
             case id_get_layer_state:
+                companion_hid_fill_state(data, layer_state);
+                break;
+            case id_set_report_change:
+                companion_hid_report_change_flag = argument;
+                companion_hid_fill_state(data, layer_state);
+                break;
+            case id_set_report_press:
+                companion_hid_report_press_flag = argument;
                 companion_hid_fill_state(data, layer_state);
                 break;
             case id_invert_layer:
                 if(argument > 0) {
-                    uint8_t save_report_state = companion_hid_report;
-                    companion_hid_report = 0;
+                    uint8_t save_report_state = companion_hid_report_change_flag;
+                    companion_hid_report_change_flag = 0;
                     layer_invert(argument);
-                    companion_hid_report = save_report_state;
+                    companion_hid_report_change_flag = save_report_state;
                     companion_hid_fill_state(data, layer_state);
                 } else {
                     data[0] = id_companion_hid_out_error;
