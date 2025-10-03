@@ -44,12 +44,12 @@ void companion_hid_report_press(uint32_t symbol, const char* fallback) {
         response[4] = ((uint8_t*) &symbol)[3];
         raw_hid_send(response, HID_MESSAGE_LENGTH);
     } else {
-        SEND_STRING(fallback);
+        send_string(fallback);
     }
 }
 
 
-layer_state_t layer_state_set_user(layer_state_t state) {
+layer_state_t layer_state_set_companion_hid(layer_state_t state) {
     companion_hid_report_state(state);
     return state;
 }
