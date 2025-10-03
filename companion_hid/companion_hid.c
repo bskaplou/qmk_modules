@@ -104,3 +104,12 @@ void raw_hid_receive_kb(uint8_t *data, uint8_t length) {
         }
     }
 }
+
+bool via_command_kb(uint8_t *data, uint8_t length) {
+    if(data[0] == id_companion_hid_in) {
+      raw_hid_receive_kb(data, length);
+      raw_hid_send(data, length);
+      return true;
+    }
+    return false;
+}
