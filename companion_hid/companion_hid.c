@@ -2,6 +2,11 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include QMK_KEYBOARD_H
+
+#ifndef VIA_ENABLE
+#    error "VIA_ENABLE is not enabled"
+#endif
+
 #include "raw_hid.h"
 
 #include "introspection.h"
