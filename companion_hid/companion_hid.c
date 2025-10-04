@@ -3,8 +3,8 @@
 
 #include QMK_KEYBOARD_H
 
-#ifndef VIA_ENABLE
-#    error "VIA_ENABLE is not enabled"
+#ifndef RAW_ENABLE
+#    error "RAW_ENABLE is not enabled"
 #endif
 
 #include "raw_hid.h"
@@ -110,11 +110,20 @@ void raw_hid_receive_kb(uint8_t *data, uint8_t length) {
     }
 }
 
+#ifndef VIA_ENABLE
+void raw_hid_receive(uint8_t *data, uint8_t length) {
+    if(data[0] == id_companion_hid_in) {
+        raw_hid_receive_kb(data, length);
+        raw_hid_send(data, length);
+    }
+}
+#else
 bool via_command_kb(uint8_t *data, uint8_t length) {
     if(data[0] == id_companion_hid_in) {
-      raw_hid_receive_kb(data, length);
-      raw_hid_send(data, length);
-      return true;
+        raw_hid_receive_kb(data, length);
+        raw_hid_send(data, length);
+        return true;
     }
     return false;
 }
+#endif
