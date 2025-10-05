@@ -12,8 +12,9 @@
 #include "introspection.h"
 
 // by default layers/presses are not reported on change, can be altered with related subcommands
-uint8_t companion_hid_report_change_flag = 0;
-uint8_t companion_hid_report_press_flag  = 0;
+uint8_t companion_hid_report_change_flag       = 0;
+uint8_t companion_hid_report_press_flag        = 0;
+uint8_t companion_hid_report_next_coords_count = 0;
 
 void companion_hid_fill_state(uint8_t *data, layer_state_t state) {
     data[0] = id_companion_hid_out_state;
@@ -27,6 +28,7 @@ void companion_hid_fill_state(uint8_t *data, layer_state_t state) {
 
     data[3] = companion_hid_report_change_flag;
     data[4] = companion_hid_report_press_flag;
+    data[5] = companion_hid_report_next_coords_count;
 }
 
 void companion_hid_report_state(layer_state_t state) {
@@ -66,6 +68,7 @@ void caps_word_set_user(bool active) {
 }
 #endif
 
+// hierarchy rules are violated with all variants of hid callbacks, but we have what we have
 void raw_hid_receive_kb(uint8_t *data, uint8_t length) {
     // hid messages are 32 bytes long so it's always safe to read first/second/third bytes
     uint8_t command = data[0];
@@ -104,6 +107,10 @@ void raw_hid_receive_kb(uint8_t *data, uint8_t length) {
                     data[0] = id_companion_hid_out_error;
                 }
                 break;
+            case id_set_report_next_coords:
+                companion_hid_report_next_coords_count = argument;
+                companion_hid_fill_state(data, layer_state);
+                break;
             default:
                 data[0] = id_companion_hid_out_error;
         }
@@ -127,3 +134,23 @@ bool via_command_kb(uint8_t *data, uint8_t length) {
     return false;
 }
 #endif
+
+bool process_record_companion_hid(uint16_t keycode, keyrecord_t *record) {
+    if(companion_hid_report_next_coords_count) {
+        uint8_t response[HID_MESSAGE_LENGTH];
+        memset(response, 0, HID_MESSAGE_LENGTH);
+        response[0] = id_companion_hid_out_coords;
+        response[1] = record->event.key.col;
+        response[2] = record->event.key.row;
+        response[3] = record->event.pressed;
+
+        if (! record->event.pressed) {
+            companion_hid_report_next_coords_count -= 1;
+        }
+
+        raw_hid_send(response, HID_MESSAGE_LENGTH);
+        return false;
+    } else {
+        return true;
+    }
+}

@@ -23,6 +23,7 @@ enum companion_hid_command_id {
     id_companion_hid_out_press              = 0x90,
     id_companion_hid_out_version            = 0x91,
     id_companion_hid_out_error              = 0x92,
+    id_companion_hid_out_coords             = 0x93,
 };
 
 // Second byte of message should be subcommand to save command space, same as vial
@@ -32,6 +33,7 @@ enum companion_hid_subcommand_id {
     id_set_report_change                    = 0x02,
     id_invert_layer                         = 0x03,
     id_set_report_press                     = 0x04,
+    id_set_report_next_coords               = 0x05,
 };
 
 void companion_hid_report_press(uint32_t symbol, const char* fallback);
