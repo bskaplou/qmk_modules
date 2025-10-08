@@ -47,8 +47,8 @@ void companion_hid_report_press(uint32_t symbol, const char* fallback, keyrecord
         response[2] = ((uint8_t*) &symbol)[1];
         response[3] = ((uint8_t*) &symbol)[2];
         response[4] = ((uint8_t*) &symbol)[3];
-        response[5] = record->event.key.col;
-        response[6] = record->event.key.row;
+        response[5] = record->event.key.row;
+        response[6] = record->event.key.col;
         response[7] = record->event.pressed;
         raw_hid_send(response, HID_MESSAGE_LENGTH);
     } else {
