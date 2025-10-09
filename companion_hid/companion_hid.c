@@ -10,6 +10,7 @@
 #include "raw_hid.h"
 
 #include "introspection.h"
+#include "companion_hid.h"
 
 // by default layers/presses are not reported on change, can be altered with related subcommands
 uint8_t companion_hid_report_change_flag       = 0;
@@ -131,5 +132,30 @@ bool via_command_kb(uint8_t *data, uint8_t length) {
         return true;
     }
     return false;
+}
+#endif
+
+#ifdef COMPANION_HID_TOUCHBOARD
+enum unicode_keycodes {
+    MOUSE = QK_KB_0, // To place into three leftmost positions in vial User buttons
+    LEFTWARDS_ARROW,
+    RIGHTWARDS_ARROW,
+};
+
+const char* touchboard_symbols[][2] = {
+    {":mouse-move:", (char*) U"\U0001F401"},
+    {":mouse-1:", (char*) U"\U00002190"},
+    {":mouse-2:", (char*) U"\U00002192"},
+};
+
+bool process_record_companion_hid(uint16_t keycode, keyrecord_t *record) {
+  if(keycode >= QK_KB_0 && keycode <= RIGHTWARDS_ARROW) {
+      const char* fallback = touchboard_symbols[keycode - QK_KB_0][0];
+      const uint32_t symbol = *((uint32_t*) touchboard_symbols[keycode - QK_KB_0][1]);
+      companion_hid_report_press(symbol, fallback, record);
+      return false;
+  } else {
+      return true;
+  }
 }
 #endif
