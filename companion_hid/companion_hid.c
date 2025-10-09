@@ -125,6 +125,7 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
     }
 }
 #else
+
 bool via_command_kb(uint8_t *data, uint8_t length) {
     if(data[0] == id_companion_hid_in) {
         raw_hid_receive_kb(data, length);
@@ -136,20 +137,14 @@ bool via_command_kb(uint8_t *data, uint8_t length) {
 #endif
 
 #ifdef COMPANION_HID_TOUCHBOARD
-enum unicode_keycodes {
-    MOUSE = QK_KB_0, // To place into three leftmost positions in vial User buttons
-    LEFTWARDS_ARROW,
-    RIGHTWARDS_ARROW,
-};
-
 const char* touchboard_symbols[][2] = {
-    {":mouse-move:", (char*) U"\U0001F401"},
-    {":mouse-1:", (char*) U"\U00002190"},
-    {":mouse-2:", (char*) U"\U00002192"},
+    {"TB_MOVE", (char*) U"\U0001F401"},
+    {"TB_1", (char*) U"\U00002190"},
+    {"TB_2", (char*) U"\U00002192"},
 };
 
 bool process_record_companion_hid(uint16_t keycode, keyrecord_t *record) {
-  if(keycode >= QK_KB_0 && keycode <= RIGHTWARDS_ARROW) {
+  if(keycode >= QK_KB_0 && keycode <= TB_2) {
       const char* fallback = touchboard_symbols[keycode - QK_KB_0][0];
       const uint32_t symbol = *((uint32_t*) touchboard_symbols[keycode - QK_KB_0][1]);
       companion_hid_report_press(symbol, fallback, record);

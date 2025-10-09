@@ -53,3 +53,11 @@ NB is your keymap has no keymap.json, just create it as follows
 
 All done, just compile your keymap with companion_hid support as usual, flash your keyboard and start widget!
 
+
+#### Touchboard
+
+To enable touchboard functionality add following line to config.h of your keymap.
+
+```
+#define COMPANION_HID_TOUCHBOARD
+```
